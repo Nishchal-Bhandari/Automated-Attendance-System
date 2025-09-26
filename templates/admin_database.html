@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}Database Administration - Enhanced SQL System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-database me-2"></i>Database Administration
+            </h2>
+            
+            <!-- Database Statistics -->
+            <div class="row mb-4">
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                            <h4 class="text-primary">{{ stats.total_students }}</h4>
+                            <p class="mb-0">Total Students</p>
+                            <small class="text-muted">{{ stats.active_students }} Active</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-images fa-2x text-success mb-2"></i>
+                            <h4 class="text-success">{{ stats.students_with_photos }}</h4>
+                            <p class="mb-0">Photos in DB</p>
+                            <small class="text-muted">{{ stats.total_photos }} Total Files</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-calendar-check fa-2x text-info mb-2"></i>
+                            <h4 class="text-info">{{ stats.total_attendance_records }}</h4>
+                            <p class="mb-0">Attendance Records</p>
+                            <small class="text-muted">{{ stats.attendance_today }} Today</small>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <i class="fas fa-key fa-2x text-warning mb-2"></i>
+                            <h4 class="text-warning">{{ stats.active_daily_codes }}</h4>
+                            <p class="mb-0">Active Codes</p>
+                            <small class="text-muted">Security System</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Database Operations -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tools me-2"></i>Database Operations
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <button class="btn btn-outline-primary" onclick="backupDatabase()">
+                                    <i class="fas fa-download me-2"></i>Backup Database
+                                </button>
+                                <button class="btn btn-outline-info" onclick="optimizeDatabase()">
+                                    <i class="fas fa-rocket me-2"></i>Optimize Database
+                                </button>
+                                <button class="btn btn-outline-secondary" onclick="repairPhotos()">
+                                    <i class="fas fa-wrench me-2"></i>Repair Photo References
+                                </button>
+                                <button class="btn btn-outline-warning" onclick="cleanupOldData()">
+                                    <i class="fas fa-broom me-2"></i>Cleanup Old Data
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="confirmReset()">
+                                    <i class="fas fa-trash-alt me-2"></i>Reset All Data
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-pie me-2"></i>Storage Information
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label class="form-label">Database Size:</label>
+                                <div class="progress">
+                                    <div class="progress-bar" role="progressbar" style="width: 25%">
+                                        <span id="dbSize">Calculating...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Photo Storage:</label>
+                                <div class="progress">
+                                    <div class="progress-bar bg-success" role="progressbar" style="width: 60%">
+                                        <span id="photoSize">Calculating...</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="mb-0">
+                                <small class="text-muted">
+                                    Database Type: <strong>{{ config.get('DB_TYPE', 'SQLite') }}</strong>
+                                </small>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Recent Activity -->
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-plus me-2"></i>Recent Students
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_students %}
+                                <div class="list-group list-group-flush">
+                                    {% for student in recent_students %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ student.name }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ student.roll_number }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                {{ student.created_at.strftime('%d %b %Y') }}
+                                            </small>
+                                            <br>
+                                            {% if student.photo_blob %}
+                                                <span class="badge bg-success">Photo</span>
+                                            {% endif %}
+                                            {% if student.face_encoding %}
+                                                <span class="badge bg-primary">Face ID</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-0">No recent student registrations</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-calendar-check me-2"></i>Recent Attendance
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_attendance %}
+                                <div class="list-group list-group-flush">
+                                    {% for attendance in recent_attendance %}
+                                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>{{ attendance.student.name if attendance.student else 'Unknown' }}</strong>
+                                            <br>
+                                            <small class="text-muted">{{ attendance.method }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <small class="text-muted">
+                                                {{ attendance.time_in.strftime('%d %b %Y %H:%M') }}
+                                            </small>
+                                            <br>
+                                            <span class="badge bg-{{ 'success' if attendance.status == 'Present' else 'warning' }}">
+                                                {{ attendance.status }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            {% else %}
+                                <p class="text-muted mb-0">No recent attendance records</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Database Configuration -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-cog me-2"></i>Database Configuration
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h6>Connection Details</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Database Type:</strong> {{ config.get('DB_TYPE', 'SQLite') }}</li>
+                                        <li><strong>Photo Storage:</strong> Database BLOB + File Backup</li>
+                                        <li><strong>Max File Size:</strong> 16 MB</li>
+                                        <li><strong>Supported Formats:</strong> JPG, PNG, GIF</li>
+                                    </ul>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Performance Settings</h6>
+                                    <ul class="list-unstyled">
+                                        <li><strong>Connection Pool:</strong> Enabled</li>
+                                        <li><strong>Query Logging:</strong> Enabled</li>
+                                        <li><strong>Auto Cleanup:</strong> 365 days</li>
+                                        <li><strong>Indexing:</strong> Optimized</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Reset Confirmation Modal -->
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">⚠️ Confirm Database Reset</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6>⚠️ This will permanently delete ALL data!</h6>
+                </div>
+                <p>You are about to reset the entire database including:</p>
+                <ul class="text-danger">
+                    <li>All student profiles and photos</li>
+                    <li>All attendance records</li>
+                    <li>All daily codes and security tokens</li>
+                    <li>All metadata and session data</li>
+                </ul>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmResetCheck">
+                    <label class="form-check-label" for="confirmResetCheck">
+                        I understand this action cannot be undone
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmResetBtn" disabled>
+                    Reset Database
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Operation Status Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Operation Status</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <div id="statusSpinner" class="spinner-border text-primary mb-3" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p id="statusMessage">Processing operation...</p>
+                </div>
+                <div id="statusResults" class="mt-3" style="display: none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Database operations
+function backupDatabase() {
+    showOperationStatus('Creating database backup...');
+    
+    fetch('/admin/backup_database', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            hideOperationStatus();
+            if (data.success) {
+                alert(`Backup created successfully: ${data.backup_file}`);
+            } else {
+                alert(`Backup failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            hideOperationStatus();
+            alert('Network error during backup');
+        });
+}
+
+function optimizeDatabase() {
+    showOperationStatus('Optimizing database...');
+    
+    fetch('/admin/optimize_database', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            hideOperationStatus();
+            if (data.success) {
+                alert(`Database optimized successfully. ${data.message}`);
+                location.reload();
+            } else {
+                alert(`Optimization failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            hideOperationStatus();
+            alert('Network error during optimization');
+        });
+}
+
+function repairPhotos() {
+    showOperationStatus('Repairing photo references...');
+    
+    fetch('/admin/repair_photos', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            hideOperationStatus();
+            if (data.success) {
+                alert(`Photo repair completed. ${data.repaired} photos processed.`);
+                location.reload();
+            } else {
+                alert(`Photo repair failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            hideOperationStatus();
+            alert('Network error during photo repair');
+        });
+}
+
+function cleanupOldData() {
+    if (!confirm('This will remove attendance records older than 365 days. Continue?')) {
+        return;
+    }
+    
+    showOperationStatus('Cleaning up old data...');
+    
+    fetch('/admin/cleanup_old_data', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            hideOperationStatus();
+            if (data.success) {
+                alert(`Cleanup completed. ${data.removed} records removed.`);
+                location.reload();
+            } else {
+                alert(`Cleanup failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            hideOperationStatus();
+            alert('Network error during cleanup');
+        });
+}
+
+function confirmReset() {
+    new bootstrap.Modal(document.getElementById('resetModal')).show();
+}
+
+// Reset confirmation handling
+document.getElementById('confirmResetCheck').addEventListener('change', function() {
+    document.getElementById('confirmResetBtn').disabled = !this.checked;
+});
+
+document.getElementById('confirmResetBtn').addEventListener('click', function() {
+    bootstrap.Modal.getInstance(document.getElementById('resetModal')).hide();
+    
+    showOperationStatus('Resetting database...');
+    
+    fetch('/admin/reset_database', { method: 'POST' })
+        .then(response => response.json())
+        .then(data => {
+            hideOperationStatus();
+            if (data.success) {
+                alert('Database reset completed successfully');
+                location.reload();
+            } else {
+                alert(`Reset failed: ${data.message}`);
+            }
+        })
+        .catch(error => {
+            hideOperationStatus();
+            alert('Network error during reset');
+        });
+});
+
+// Status modal helpers
+function showOperationStatus(message) {
+    document.getElementById('statusMessage').textContent = message;
+    document.getElementById('statusSpinner').style.display = 'block';
+    document.getElementById('statusResults').style.display = 'none';
+    new bootstrap.Modal(document.getElementById('statusModal')).show();
+}
+
+function hideOperationStatus() {
+    bootstrap.Modal.getInstance(document.getElementById('statusModal')).hide();
+}
+
+// Load storage information
+document.addEventListener('DOMContentLoaded', function() {
+    loadStorageInfo();
+});
+
+function loadStorageInfo() {
+    fetch('/admin/storage_info')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('dbSize').textContent = data.database_size;
+                document.getElementById('photoSize').textContent = data.photo_size;
+            }
+        })
+        .catch(error => {
+            console.log('Error loading storage info:', error);
+        });
+}
+</script>
+{% endblock %}

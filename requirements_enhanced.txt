@@ -1,0 +1,198 @@
+# Enhanced Rural School Attendance System - Python Dependencies
+# SQL Database Integration with Photo BLOB Storage
+
+# Core Flask Framework
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Werkzeug==2.3.7
+Jinja2==3.1.2
+MarkupSafe==2.1.3
+itsdangerous==2.1.2
+click==8.1.7
+
+# Database Drivers
+# SQLite (included with Python)
+# For MySQL support (optional)
+PyMySQL==1.1.0
+cryptography==41.0.4
+
+# For PostgreSQL support (optional)
+psycopg2-binary==2.9.7
+
+# Image Processing and Computer Vision
+opencv-python==4.8.1.78
+Pillow==10.0.1
+numpy>=1.24.0
+
+# Face Recognition (MediaPipe)
+mediapipe>=0.10.5
+protobuf==3.20.3
+
+# Additional Image Processing
+scipy==1.11.3
+scikit-image==0.21.0
+
+# Data Handling
+pandas==2.1.1
+openpyxl==3.1.2
+
+# Security and Utilities
+secrets  # Built-in Python module
+hashlib  # Built-in Python module
+base64   # Built-in Python module
+uuid     # Built-in Python module
+
+# Date and Time
+python-dateutil==2.8.2
+
+# File Handling
+pathlib  # Built-in Python module
+shutil   # Built-in Python module
+
+# Development and Debugging (optional)
+python-dotenv==1.0.0
+watchdog==3.0.0
+
+# Testing (optional)
+pytest==7.4.2
+pytest-flask==1.2.0
+
+# Database Migration Tools (optional)
+alembic==1.12.0
+Flask-Migrate==4.0.5
+
+# API and JSON Support
+jsonify  # Part of Flask
+json     # Built-in Python module
+
+# System Information
+psutil==5.9.5
+
+# Backup and Compression
+zipfile  # Built-in Python module
+tarfile  # Built-in Python module
+
+# Configuration Management
+configparser  # Built-in Python module
+os          # Built-in Python module
+sys         # Built-in Python module
+
+# Logging
+logging  # Built-in Python module
+
+# Math and Statistics
+math     # Built-in Python module
+statistics  # Built-in Python module
+
+# Multi-threading (for performance)
+threading   # Built-in Python module
+concurrent.futures  # Built-in Python module
+
+# Network and HTTP
+requests==2.31.0
+urllib3==2.0.4
+
+# Time and Scheduling
+schedule==1.2.0
+time  # Built-in Python module
+
+# Memory Management
+gc  # Built-in Python module
+
+# Data Validation
+cerberus==1.3.5
+
+# Email Support (for notifications)
+smtplib  # Built-in Python module
+email    # Built-in Python module
+
+# QR Code Generation (for mobile attendance)
+qrcode==7.4.2
+
+# Excel Export Support
+xlsxwriter==3.1.9
+
+# PDF Generation (for reports)
+reportlab==4.0.4
+
+# Barcode Support
+python-barcode==0.14.0
+
+# Cache Management
+cachetools==5.3.1
+
+# Environment Detection
+platform  # Built-in Python module
+
+# Process Management
+subprocess  # Built-in Python module
+
+# Regular Expressions
+re  # Built-in Python module
+
+# String Operations
+string  # Built-in Python module
+
+# Collections and Data Structures
+collections  # Built-in Python module
+itertools    # Built-in Python module
+
+# Binary Data Handling
+struct  # Built-in Python module
+pickle  # Built-in Python module
+
+# Temporary Files
+tempfile  # Built-in Python module
+
+# Signal Handling
+signal  # Built-in Python module
+
+# Performance Monitoring
+cProfile  # Built-in Python module
+timeit    # Built-in Python module
+
+# Memory Profiling
+memory_profiler==0.61.0
+
+# Database Performance
+SQLAlchemy==2.0.21
+
+# Async Support (for better performance)
+asyncio  # Built-in Python module
+
+# Type Hints
+typing  # Built-in Python module
+
+# Error Handling
+traceback  # Built-in Python module
+warnings   # Built-in Python module
+
+# Functional Programming
+functools  # Built-in Python module
+operator   # Built-in Python module
+
+# Internationalization (i18n)
+babel==2.12.1
+Flask-Babel==3.1.0
+
+# Timezone Support
+pytz==2023.3
+
+# Color Support (for terminal output)
+colorama==0.4.6
+
+# Progress Bars
+tqdm==4.66.1
+
+# YAML Support (for configuration)
+PyYAML==6.0.1
+
+# TOML Support
+tomli==2.0.1
+
+# Command Line Interface
+argparse  # Built-in Python module
+
+# Web Scraping (if needed for data import)
+beautifulsoup4==4.12.2
+lxml==4.9.3

@@ -1,0 +1,214 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ student.name }} - Student Management{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-edit me-2"></i>Edit Student Details
+                </h2>
+                <div>
+                    <a href="{{ url_for('view_student', student_id=student.id) }}" class="btn btn-outline-secondary me-2">
+                        <i class="fas fa-eye me-2"></i>View Details
+                    </a>
+                    <a href="{{ url_for('students') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Students
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Current Photo Preview -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h6 class="mb-0">Current Photo</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            {% if student.photo_blob %}
+                                <img src="{{ url_for('student_photo', student_id=student.id) }}" 
+                                     class="img-fluid rounded-circle mb-3" 
+                                     style="width: 200px; height: 200px; object-fit: cover;"
+                                     alt="{{ student.name }}"
+                                     id="currentPhoto">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                                     style="width: 200px; height: 200px;"
+                                     id="currentPhoto">
+                                    <i class="fas fa-user fa-5x text-white"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <p class="text-muted">
+                                {% if student.photo_blob %}
+                                    Photo available
+                                {% else %}
+                                    No photo uploaded
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <!-- Photo Upload Preview -->
+                    <div class="card mt-3" id="photoPreview" style="display: none;">
+                        <div class="card-header">
+                            <h6 class="mb-0">New Photo Preview</h6>
+                        </div>
+                        <div class="card-body text-center">
+                            <img id="newPhotoPreview" class="img-fluid rounded-circle" 
+                                 style="width: 200px; height: 200px; object-fit: cover;">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Edit Form -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Student Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <form method="POST" enctype="multipart/form-data">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="name" name="name" 
+                                                   value="{{ student.name }}" required>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="roll_number" class="form-label">Roll Number <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="roll_number" name="roll_number" 
+                                                   value="{{ student.roll_number }}" required>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="class_name" class="form-label">Class</label>
+                                            <input type="text" class="form-control" id="class_name" name="class_name" 
+                                                   value="{{ student.class_name or '' }}" placeholder="e.g., 10th, BSc, Grade 5">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="section" class="form-label">Section</label>
+                                            <input type="text" class="form-control" id="section" name="section" 
+                                                   value="{{ student.section or '' }}" placeholder="e.g., A, B, Science">
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="parent_name" class="form-label">Parent/Guardian Name</label>
+                                            <input type="text" class="form-control" id="parent_name" name="parent_name" 
+                                                   value="{{ student.parent_name or '' }}">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="phone_number" class="form-label">Student Phone</label>
+                                            <input type="tel" class="form-control" id="phone_number" name="phone_number" 
+                                                   value="{{ student.phone_number or '' }}">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="parent_phone" class="form-label">Parent Phone</label>
+                                            <input type="tel" class="form-control" id="parent_phone" name="parent_phone" 
+                                                   value="{{ student.parent_phone or '' }}">
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="address" class="form-label">Address</label>
+                                            <textarea class="form-control" id="address" name="address" rows="3">{{ student.address or '' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Photo Upload Section -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="mb-3">
+                                            <label for="photo" class="form-label">Update Photo (Optional)</label>
+                                            <input type="file" class="form-control" id="photo" name="photo" 
+                                                   accept="image/*" onchange="previewPhoto(this)">
+                                            <div class="form-text">
+                                                <i class="fas fa-info-circle me-1"></i>
+                                                Upload a clear photo for better face recognition. Max size: 5MB. 
+                                                Leave empty to keep current photo.
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="d-flex justify-content-between">
+                                            <div>
+                                                <button type="submit" class="btn btn-success me-2">
+                                                    <i class="fas fa-save me-2"></i>Update Student
+                                                </button>
+                                                <a href="{{ url_for('view_student', student_id=student.id) }}" class="btn btn-outline-secondary">
+                                                    <i class="fas fa-times me-2"></i>Cancel
+                                                </a>
+                                            </div>
+                                            <button type="button" class="btn btn-outline-danger" onclick="confirmDelete()">
+                                                <i class="fas fa-trash me-2"></i>Delete Student
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ student.name }}</strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_student', student_id=student.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function previewPhoto(input) {
+    if (input.files && input.files[0]) {
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+            document.getElementById('newPhotoPreview').src = e.target.result;
+            document.getElementById('photoPreview').style.display = 'block';
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    } else {
+        document.getElementById('photoPreview').style.display = 'none';
+    }
+}
+
+function confirmDelete() {
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+</script>
+{% endblock %}

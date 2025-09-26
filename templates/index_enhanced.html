@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+
+{% block title %}Enhanced Rural School Attendance System{% endblock %}
+
+{% block content %}
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">
+            <i class="fas fa-graduation-cap me-3"></i>
+            Enhanced Attendance System
+        </h1>
+        <p class="lead mb-4">
+            Advanced SQL database with photo BLOB storage and comprehensive student management
+        </p>
+        <div class="d-flex flex-wrap justify-content-center gap-3">
+            <a href="{{ url_for('attendance_page') }}" class="btn btn-light btn-lg">
+                <i class="fas fa-camera me-2"></i>Live Camera
+            </a>
+            <a href="{{ url_for('add_student') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Add Student
+            </a>
+            <a href="{{ url_for('admin_database') }}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-database me-2"></i>Database Admin
+            </a>
+        </div>
+    </div>
+</div>
+
+<div class="container my-5">
+    <!-- System Statistics -->
+    <div class="row mb-5">
+        <div class="col-12">
+            <h2 class="text-center mb-4">
+                <i class="fas fa-chart-bar me-2"></i>System Overview
+            </h2>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h3 class="text-primary">{{ stats.total_students }}</h3>
+                    <p class="mb-0">Total Students</p>
+                    <small class="text-muted">{{ stats.active_students }} Active</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-images fa-3x text-success mb-3"></i>
+                    <h3 class="text-success">{{ stats.students_with_photos }}</h3>
+                    <p class="mb-0">Students with Photos</p>
+                    <small class="text-muted">Stored in Database</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-calendar-check fa-3x text-info mb-3"></i>
+                    <h3 class="text-info">{{ stats.attendance_today }}</h3>
+                    <p class="mb-0">Present Today</p>
+                    <small class="text-muted">{{ stats.total_attendance_records }} Total Records</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card text-center h-100">
+                <div class="card-body">
+                    <i class="fas fa-key fa-3x text-warning mb-3"></i>
+                    <h3 class="text-warning">{{ stats.active_daily_codes }}</h3>
+                    <p class="mb-0">Active Codes</p>
+                    <small class="text-muted">Security Features</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Feature Cards -->
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-database fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Enhanced SQL Database</h5>
+                    <p class="card-text">Photos stored as BLOB in database with metadata. Supports SQLite, MySQL, and PostgreSQL.</p>
+                    <a href="{{ url_for('admin_database') }}" class="btn btn-custom">Database Admin</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-camera fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Advanced Face Recognition</h5>
+                    <p class="card-text">MediaPipe-based face detection with database-stored encodings and confidence tracking.</p>
+                    <a href="{{ url_for('attendance_page') }}" class="btn btn-custom">Start Recognition</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-users-cog fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Complete Student Management</h5>
+                    <p class="card-text">Enhanced student profiles with class, section, parent contacts, and address information.</p>
+                    <a href="{{ url_for('students') }}" class="btn btn-custom">Manage Students</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Technical Features -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-cogs me-2"></i>Technical Features
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-check-circle text-success me-2"></i>Database Features</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check me-2 text-success"></i>Photo BLOB storage in database</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Multi-database support (SQLite/MySQL/PostgreSQL)</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Photo integrity verification with SHA-256</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Comprehensive metadata tracking</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Automatic data cleanup and maintenance</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-users text-primary me-2"></i>Enhanced Features</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-clock me-2 text-info"></i>Session tracking and bulk operations</li>
+                                <li><i class="fas fa-shield-alt me-2 text-info"></i>Enhanced security with daily code limits</li>
+                                <li><i class="fas fa-chart-line me-2 text-info"></i>Comprehensive attendance analytics</li>
+                                <li><i class="fas fa-mobile-alt me-2 text-info"></i>Device and location tracking</li>
+                                <li><i class="fas fa-file-alt me-2 text-info"></i>Detailed audit logs and reporting</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card bg-light">
+                <div class="card-body text-center">
+                    <h4 class="card-title">
+                        <i class="fas fa-rocket me-2"></i>Quick Actions
+                    </h4>
+                    <div class="btn-group-vertical btn-group-lg d-md-none" role="group">
+                        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Register New Student
+                        </a>
+                        <a href="{{ url_for('attendance_page') }}" class="btn btn-success">
+                            <i class="fas fa-camera me-2"></i>Mark Attendance
+                        </a>
+                        <a href="{{ url_for('students') }}" class="btn btn-info">
+                            <i class="fas fa-users me-2"></i>View All Students
+                        </a>
+                        <a href="{{ url_for('admin_database') }}" class="btn btn-warning">
+                            <i class="fas fa-database me-2"></i>Database Management
+                        </a>
+                    </div>
+                    <div class="d-none d-md-block">
+                        <a href="{{ url_for('add_student') }}" class="btn btn-primary btn-lg me-3">
+                            <i class="fas fa-user-plus me-2"></i>Register New Student
+                        </a>
+                        <a href="{{ url_for('attendance_page') }}" class="btn btn-success btn-lg me-3">
+                            <i class="fas fa-camera me-2"></i>Mark Attendance
+                        </a>
+                        <a href="{{ url_for('students') }}" class="btn btn-info btn-lg me-3">
+                            <i class="fas fa-users me-2"></i>View All Students
+                        </a>
+                        <a href="{{ url_for('admin_database') }}" class="btn btn-warning btn-lg">
+                            <i class="fas fa-database me-2"></i>Database Management
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Load real-time statistics
+document.addEventListener('DOMContentLoaded', function() {
+    // Update statistics every 30 seconds
+    setInterval(updateStats, 30000);
+    
+    function updateStats() {
+        fetch('/database_stats')
+            .then(response => response.json())
+            .then(data => {
+                // Update the statistics on the page
+                console.log('Updated stats:', data);
+                // You can update the DOM elements here if needed
+            })
+            .catch(error => console.log('Stats update error:', error));
+    }
+});
+</script>
+{% endblock %}

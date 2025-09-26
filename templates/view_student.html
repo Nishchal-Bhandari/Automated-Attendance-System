@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}{{ student.name }} - Student Details{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-user me-2"></i>Student Details
+                </h2>
+                <div>
+                    <a href="{{ url_for('edit_student', student_id=student.id) }}" class="btn btn-warning me-2">
+                        <i class="fas fa-edit me-2"></i>Edit Student
+                    </a>
+                    <a href="{{ url_for('students') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-arrow-left me-2"></i>Back to Students
+                    </a>
+                </div>
+            </div>
+            
+            <div class="row">
+                <!-- Student Photo and Basic Info -->
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            {% if student.photo_blob %}
+                                <img src="{{ url_for('student_photo', student_id=student.id) }}" 
+                                     class="img-fluid rounded-circle mb-3" 
+                                     style="width: 200px; height: 200px; object-fit: cover;"
+                                     alt="{{ student.name }}">
+                            {% else %}
+                                <div class="bg-secondary rounded-circle mx-auto mb-3 d-flex align-items-center justify-content-center"
+                                     style="width: 200px; height: 200px;">
+                                    <i class="fas fa-user fa-5x text-white"></i>
+                                </div>
+                            {% endif %}
+                            
+                            <h4 class="card-title">{{ student.name }}</h4>
+                            <p class="text-muted">Roll Number: {{ student.roll_number }}</p>
+                            
+                            <!-- Status Badge -->
+                            <span class="badge bg-success">
+                                <i class="fas fa-check-circle me-1"></i>Active
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h6 class="mb-0">Quick Actions</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                <a href="{{ url_for('edit_student', student_id=student.id) }}" class="btn btn-outline-warning btn-sm">
+                                    <i class="fas fa-edit me-2"></i>Edit Details
+                                </a>
+                                <button class="btn btn-outline-danger btn-sm" onclick="confirmDelete()">
+                                    <i class="fas fa-trash me-2"></i>Delete Student
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Student Details -->
+                <div class="col-md-8">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">Personal Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Full Name</label>
+                                        <p class="fw-bold">{{ student.name or 'Not provided' }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Roll Number</label>
+                                        <p class="fw-bold">{{ student.roll_number or 'Not provided' }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Class</label>
+                                        <p class="fw-bold">{{ student.class_name or 'Not provided' }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Section</label>
+                                        <p class="fw-bold">{{ student.section or 'Not provided' }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Parent Name</label>
+                                        <p class="fw-bold">{{ student.parent_name or 'Not provided' }}</p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Student Phone</label>
+                                        <p class="fw-bold">
+                                            {% if student.phone_number %}
+                                                <a href="tel:{{ student.phone_number }}" class="text-decoration-none">
+                                                    <i class="fas fa-phone me-1"></i>{{ student.phone_number }}
+                                                </a>
+                                            {% else %}
+                                                Not provided
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Parent Phone</label>
+                                        <p class="fw-bold">
+                                            {% if student.parent_phone %}
+                                                <a href="tel:{{ student.parent_phone }}" class="text-decoration-none">
+                                                    <i class="fas fa-phone me-1"></i>{{ student.parent_phone }}
+                                                </a>
+                                            {% else %}
+                                                Not provided
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Address</label>
+                                        <p class="fw-bold">{{ student.address or 'Not provided' }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Technical Information -->
+                    <div class="card mt-3">
+                        <div class="card-header">
+                            <h5 class="mb-0">Technical Information</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Registration Date</label>
+                                        <p class="fw-bold">
+                                            {% if student.created_at %}
+                                                {{ student.created_at.strftime('%B %d, %Y at %I:%M %p') }}
+                                            {% else %}
+                                                Not available
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Face Recognition</label>
+                                        <p class="fw-bold">
+                                            {% if student.face_encoding %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Enabled
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>Not Available
+                                                </span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Photo Status</label>
+                                        <p class="fw-bold">
+                                            {% if student.photo_blob %}
+                                                <span class="badge bg-success">
+                                                    <i class="fas fa-check-circle me-1"></i>Available
+                                                </span>
+                                            {% else %}
+                                                <span class="badge bg-warning">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>No Photo
+                                                </span>
+                                            {% endif %}
+                                        </p>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label text-muted">Student ID</label>
+                                        <p class="fw-bold">#{{ student.id }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong>{{ student.name }}</strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{{ url_for('delete_student', student_id=student.id) }}" class="d-inline">
+                    <button type="submit" class="btn btn-danger">Delete Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function confirmDelete() {
+    var deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+    deleteModal.show();
+}
+</script>
+{% endblock %}

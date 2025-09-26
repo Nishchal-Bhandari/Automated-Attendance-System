@@ -1,0 +1,17 @@
+{
+  "model_settings": {
+    "similarity_threshold": 0.6,
+    "confidence_threshold": 0.8,
+    "device": "auto"
+  },
+  "training_settings": {
+    "augment_data": true,
+    "validation_split": 0.2,
+    "batch_size": 32
+  },
+  "system_settings": {
+    "max_faces_per_image": 10,
+    "face_detection_confidence": 0.7,
+    "attendance_auto_mark": true
+  }
+}

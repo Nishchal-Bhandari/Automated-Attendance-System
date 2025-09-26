@@ -1,0 +1,367 @@
+{% extends "base.html" %}
+
+{% block title %}Add Student - Enhanced SQL System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Add New Student - Enhanced SQL System
+                    </h3>
+                    <p class="mb-0 mt-2">Photos will be stored in database as BLOB with file backup</p>
+                </div>
+                <div class="card-body">
+                    <!-- Display flash messages -->
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+
+                    <form method="POST" enctype="multipart/form-data" id="addStudentForm">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <!-- Student Information -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-info-circle me-2"></i>Student Information</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="name" class="form-label">
+                                                <i class="fas fa-user me-2"></i>Student Name *
+                                            </label>
+                                            <input type="text" class="form-control" id="name" name="name" required 
+                                                   placeholder="Enter student's full name"
+                                                   pattern="[A-Za-z\s]+" title="Only letters and spaces allowed">
+                                        </div>
+                                        
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="roll_number" class="form-label">
+                                                        <i class="fas fa-id-badge me-2"></i>Roll Number *
+                                                    </label>
+                                                    <input type="text" class="form-control" id="roll_number" name="roll_number" required 
+                                                           placeholder="Enter unique roll number">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="class_name" class="form-label">
+                                                        <i class="fas fa-graduation-cap me-2"></i>Class *
+                                                    </label>
+                                                    <input type="text" class="form-control" id="class_name" name="class_name" required 
+                                                           placeholder="Enter class/grade">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="email" class="form-label">
+                                                        <i class="fas fa-envelope me-2"></i>Email (Optional)
+                                                    </label>
+                                                    <input type="email" class="form-control" id="email" name="email" 
+                                                           placeholder="student@school.edu">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="mb-3">
+                                                    <label for="phone" class="form-label">
+                                                        <i class="fas fa-phone me-2"></i>Phone (Optional)
+                                                    </label>
+                                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                                           placeholder="Phone number">
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="mb-3">
+                                            <label for="notes" class="form-label">
+                                                <i class="fas fa-sticky-note me-2"></i>Notes (Optional)
+                                            </label>
+                                            <textarea class="form-control" id="notes" name="notes" rows="3" 
+                                                      placeholder="Additional notes about the student"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-4">
+                                <!-- Photo Upload Section -->
+                                <div class="card mb-4">
+                                    <div class="card-header">
+                                        <h5><i class="fas fa-camera me-2"></i>Student Photo</h5>
+                                    </div>
+                                    <div class="card-body text-center">
+                                        <div id="photoPreview" class="mb-3">
+                                            <div class="photo-placeholder" style="width: 200px; height: 200px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 0 auto; border-radius: 10px;">
+                                                <div class="text-muted">
+                                                    <i class="fas fa-camera fa-3x mb-2"></i>
+                                                    <p>No photo selected</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label for="photo" class="form-label">Upload Photo *</label>
+                                            <input type="file" class="form-control" id="photo" name="photo" 
+                                                   accept="image/*" required onchange="previewPhoto(this)">
+                                            <div class="form-text">
+                                                <small>Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+                                            </div>
+                                        </div>
+
+                                        <div class="d-grid gap-2">
+                                            <button type="button" class="btn btn-outline-primary" onclick="captureFromCamera()">
+                                                <i class="fas fa-video me-1"></i>Capture from Camera
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Database Storage Info -->
+                                <div class="card">
+                                    <div class="card-header">
+                                        <h6><i class="fas fa-database me-2"></i>Storage Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="text-center">
+                                            <i class="fas fa-hdd fa-2x text-primary mb-2"></i>
+                                            <p class="small mb-1"><strong>Database BLOB Storage</strong></p>
+                                            <p class="small text-muted mb-2">Photo stored directly in database</p>
+                                            
+                                            <i class="fas fa-copy fa-2x text-success mb-2"></i>
+                                            <p class="small mb-1"><strong>File Backup</strong></p>
+                                            <p class="small text-muted mb-0">Automatic file system backup</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="row mt-4">
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                    <a href="{{ url_for('students') }}" class="btn btn-secondary">
+                                        <i class="fas fa-arrow-left me-1"></i>Back to Students
+                                    </a>
+                                    <div>
+                                        <button type="reset" class="btn btn-outline-warning me-2" onclick="resetForm()">
+                                            <i class="fas fa-undo me-1"></i>Reset Form
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                                            <i class="fas fa-save me-1"></i>Add Student
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Help Section -->
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h6><i class="fas fa-question-circle me-2"></i>Help & Tips</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-lightbulb text-warning me-2"></i>Photo Tips:</h6>
+                            <ul class="small">
+                                <li>Use a clear, well-lit photo</li>
+                                <li>Face should be clearly visible</li>
+                                <li>Avoid shadows or reflections</li>
+                                <li>File size should be under 5MB</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-cog text-info me-2"></i>System Features:</h6>
+                            <ul class="small">
+                                <li>Photos stored in database as BLOB</li>
+                                <li>Automatic file backup system</li>
+                                <li>SHA-256 integrity verification</li>
+                                <li>Face recognition ready</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Camera Capture Modal -->
+<div class="modal fade" id="cameraModal" tabindex="-1" aria-labelledby="cameraModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="cameraModalLabel">
+                    <i class="fas fa-camera me-2"></i>Capture Photo from Camera
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <video id="cameraVideo" width="100%" height="300" autoplay style="border-radius: 10px;"></video>
+                <canvas id="cameraCanvas" style="display: none;"></canvas>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-success me-2" onclick="takePicture()">
+                        <i class="fas fa-camera me-1"></i>Take Picture
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="stopCamera()">
+                        <i class="fas fa-stop me-1"></i>Stop Camera
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let cameraStream = null;
+
+function previewPhoto(input) {
+    const preview = document.getElementById('photoPreview');
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.innerHTML = `
+                <img src="${e.target.result}" class="img-fluid rounded" 
+                     style="max-width: 200px; max-height: 200px; object-fit: cover;">
+                <p class="mt-2 text-success small">
+                    <i class="fas fa-check me-1"></i>Photo ready for upload
+                </p>
+            `;
+        };
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+function resetForm() {
+    document.getElementById('addStudentForm').reset();
+    document.getElementById('photoPreview').innerHTML = `
+        <div class="photo-placeholder" style="width: 200px; height: 200px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 0 auto; border-radius: 10px;">
+            <div class="text-muted">
+                <i class="fas fa-camera fa-3x mb-2"></i>
+                <p>No photo selected</p>
+            </div>
+        </div>
+    `;
+}
+
+async function captureFromCamera() {
+    const modal = new bootstrap.Modal(document.getElementById('cameraModal'));
+    modal.show();
+    
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ 
+            video: { width: 640, height: 480 } 
+        });
+        document.getElementById('cameraVideo').srcObject = cameraStream;
+    } catch (err) {
+        console.error('Error accessing camera:', err);
+        alert('Error accessing camera. Please check permissions.');
+    }
+}
+
+function takePicture() {
+    const video = document.getElementById('cameraVideo');
+    const canvas = document.getElementById('cameraCanvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    ctx.drawImage(video, 0, 0);
+    
+    canvas.toBlob(function(blob) {
+        // Create a file from blob
+        const file = new File([blob], 'camera_capture.jpg', { type: 'image/jpeg' });
+        
+        // Create file input and set the file
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        document.getElementById('photo').files = dataTransfer.files;
+        
+        // Preview the captured photo
+        previewPhoto(document.getElementById('photo'));
+        
+        // Close modal and stop camera
+        stopCamera();
+        const modal = bootstrap.Modal.getInstance(document.getElementById('cameraModal'));
+        modal.hide();
+    }, 'image/jpeg', 0.8);
+}
+
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+}
+
+// Form validation
+document.getElementById('addStudentForm').addEventListener('submit', function(e) {
+    const submitBtn = document.getElementById('submitBtn');
+    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding Student...';
+    submitBtn.disabled = true;
+});
+
+// Auto-generate roll number suggestion
+document.getElementById('name').addEventListener('input', function() {
+    const name = this.value.trim();
+    if (name) {
+        const rollSuggestion = name.replace(/\s+/g, '').toUpperCase().substring(0, 6) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+        document.getElementById('roll_number').placeholder = `Suggestion: ${rollSuggestion}`;
+    }
+});
+
+// Auto-capitalize name
+document.getElementById('name').addEventListener('blur', function() {
+    this.value = this.value.replace(/\w\S*/g, (txt) => 
+        txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase()
+    );
+});
+</script>
+
+<style>
+.photo-placeholder {
+    background-color: #f8f9fa;
+    transition: all 0.3s ease;
+}
+
+.photo-placeholder:hover {
+    background-color: #e9ecef;
+    border-color: #007bff !important;
+}
+
+.card {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+#cameraVideo {
+    background-color: #000;
+}
+</style>
+{% endblock %}
