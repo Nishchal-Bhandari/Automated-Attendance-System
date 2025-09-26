@@ -1,0 +1,131 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">
+            <i class="fas fa-shield-alt me-3"></i>
+            Secure Rural School Attendance System
+        </h1>
+        <p class="lead mb-4">
+            Cheat-proof attendance tracking for rural schools in India - No RFID cards to share or lose!
+        </p>
+        <a href="{{ url_for('manual_attendance') }}" class="btn btn-light btn-lg me-3">
+            <i class="fas fa-user-check me-2"></i>Mark Attendance
+        </a>
+        <a href="{{ url_for('add_student') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Add Student
+        </a>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Manage Students</h5>
+                    <p class="card-text">Add students with their details. System creates secure tokens automatically to prevent cheating.</p>
+                    <a href="{{ url_for('students') }}" class="btn btn-custom">View Students</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-user-check fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Manual Digital Attendance</h5>
+                    <p class="card-text">Teacher sees each student and marks digitally. Most secure method - no proxy attendance possible.</p>
+                    <a href="{{ url_for('manual_attendance') }}" class="btn btn-custom">Mark Attendance</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">Secure Reports</h5>
+                    <p class="card-text">Generate attendance reports with verification codes. Perfect for government compliance.</p>
+                    <a href="{{ url_for('reports') }}" class="btn btn-custom">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Security Features Section -->
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-shield-alt me-2"></i>Anti-Cheating Security Features
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-lock text-success me-2"></i>Security Measures</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check me-2 text-success"></i>Visual verification required</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Daily changing verification codes</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Unique secure tokens per student</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Time-stamped attendance records</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>No RFID cards to share or lose</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-users text-primary me-2"></i>Perfect for Rural Schools</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-clock me-2 text-info"></i>Saves 80% of attendance time</li>
+                                <li><i class="fas fa-calculator me-2 text-info"></i>Eliminates calculation errors</li>
+                                <li><i class="fas fa-file-alt me-2 text-info"></i>Easy government reporting</li>
+                                <li><i class="fas fa-mobile-alt me-2 text-info"></i>Works on basic computers</li>
+                                <li><i class="fas fa-wifi-slash me-2 text-info"></i>No internet required</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Methods -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Available Attendance Methods
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-user-check fa-2x text-success mb-2"></i>
+                                <h6>Manual Digital</h6>
+                                <small class="text-muted">Most secure - teacher sees each student</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-mobile-alt fa-2x text-primary mb-2"></i>
+                                <h6>Mobile Verification</h6>
+                                <small class="text-muted">Use smartphone for verification</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center p-3">
+                                <i class="fas fa-qrcode fa-2x text-info mb-2"></i>
+                                <h6>Secure QR Codes</h6>
+                                <small class="text-muted">Daily changing codes - can't be shared</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

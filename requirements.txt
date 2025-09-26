@@ -1,0 +1,14 @@
+# Core Requirements (Always needed)
+Flask==2.3.3
+Flask-SQLAlchemy==3.0.5
+Pillow==10.0.1
+Werkzeug==2.3.7
+python-dateutil==2.8.2
+
+# Group Photo Recognition (Recommended for rural schools)
+opencv-python==4.8.1.78
+face-recognition==1.3.0
+numpy==1.24.3
+
+# Alternative Methods (Optional)
+qrcode[pil]==7.4.2     # For QR code generation (if needed)

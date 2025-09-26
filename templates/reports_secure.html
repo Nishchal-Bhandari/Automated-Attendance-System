@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Reports - Secure Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">
+                <i class="fas fa-chart-bar me-2"></i>Attendance Reports
+            </h2>
+            
+            <!-- Filter Form -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="start_date" class="form-label">Start Date</label>
+                            <input type="date" class="form-control" id="start_date" name="start_date" 
+                                   value="{{ request.args.get('start_date', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="end_date" class="form-label">End Date</label>
+                            <input type="date" class="form-control" id="end_date" name="end_date" 
+                                   value="{{ request.args.get('end_date', '') }}">
+                        </div>
+                        <div class="col-md-3">
+                            <label for="student_id" class="form-label">Student</label>
+                            <select class="form-select" id="student_id" name="student_id">
+                                <option value="">All Students</option>
+                                {% for student in all_students %}
+                                    <option value="{{ student.id }}" 
+                                            {% if request.args.get('student_id')|int == student.id %}selected{% endif %}>
+                                        {{ student.name }} ({{ student.roll_number }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-search me-1"></i>Filter
+                            </button>
+                            <a href="{{ url_for('reports') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-undo me-1"></i>Reset
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Summary Statistics -->
+            {% if attendance_data %}
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-primary">{{ attendance_data|length }}</h3>
+                            <p class="mb-0">Total Records</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-success">{{ attendance_data|selectattr('status', 'equalto', 'present')|list|length }}</h3>
+                            <p class="mb-0">Present</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h3 class="text-danger">{{ attendance_data|selectattr('status', 'equalto', 'absent')|list|length }}</h3>
+                            <p class="mb-0">Absent</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            {% set present_count = attendance_data|selectattr('status', 'equalto', 'present')|list|length %}
+                            {% set total_count = attendance_data|length %}
+                            <h3 class="text-info">{{ ((present_count / total_count) * 100)|round|int if total_count > 0 else 0 }}%</h3>
+                            <p class="mb-0">Attendance Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Attendance Records Table -->
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        <i class="fas fa-table me-2"></i>Attendance Records
+                    </h5>
+                    {% if attendance_data %}
+                    <button class="btn btn-success btn-sm" onclick="exportToCSV()">
+                        <i class="fas fa-download me-1"></i>Export CSV
+                    </button>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    {% if attendance_data %}
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover" id="attendanceTable">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Student Name</th>
+                                    <th>Roll Number</th>
+                                    <th>Status</th>
+                                    <th>Method</th>
+                                    <th>Time</th>
+                                    <th>Verification</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in attendance_data %}
+                                <tr>
+                                    <td>{{ record.date.strftime('%d %b %Y') }}</td>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if record.student.photo_path %}
+                                                <img src="{{ url_for('static', filename=record.student.photo_path.replace('static/', '')) }}" 
+                                                     alt="{{ record.student.name }}" 
+                                                     class="rounded-circle me-2"
+                                                     style="width: 30px; height: 30px; object-fit: cover;">
+                                            {% endif %}
+                                            {{ record.student.name }}
+                                        </div>
+                                    </td>
+                                    <td>{{ record.student.roll_number }}</td>
+                                    <td>
+                                        {% if record.status == 'present' %}
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>Present
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-danger">
+                                                <i class="fas fa-times me-1"></i>Absent
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if record.method == 'manual_secure' %}
+                                            <span class="badge bg-primary">
+                                                <i class="fas fa-clipboard-check me-1"></i>Manual
+                                            </span>
+                                        {% elif record.method == 'face_recognition' %}
+                                            <span class="badge bg-info">
+                                                <i class="fas fa-camera me-1"></i>Face Recognition
+                                            </span>
+                                        {% elif record.method == 'group_photo' %}
+                                            <span class="badge bg-warning">
+                                                <i class="fas fa-users me-1"></i>Group Photo
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">{{ record.method }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ record.timestamp.strftime('%H:%M:%S') }}</td>
+                                    <td>
+                                        {% if record.verification_code %}
+                                            <small class="text-success">
+                                                <i class="fas fa-shield-alt me-1"></i>{{ record.verification_code }}
+                                            </small>
+                                        {% else %}
+                                            <small class="text-muted">-</small>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    {% if attendance_data|length > 20 %}
+                    <nav aria-label="Attendance records pagination">
+                        <ul class="pagination justify-content-center">
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                            <li class="page-item"><a class="page-link" href="#">2</a></li>
+                            <li class="page-item"><a class="page-link" href="#">3</a></li>
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                    {% endif %}
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-chart-line fa-5x text-muted"></i>
+                        </div>
+                        <h3 class="text-muted">No Attendance Records Found</h3>
+                        <p class="text-muted mb-4">
+                            {% if request.args.get('start_date') or request.args.get('end_date') or request.args.get('student_id') %}
+                                Try adjusting your filter criteria or 
+                                <a href="{{ url_for('reports') }}">reset filters</a>.
+                            {% else %}
+                                Start taking attendance to see reports here.
+                            {% endif %}
+                        </p>
+                        <a href="{{ url_for('manual_attendance') }}" class="btn btn-primary">
+                            <i class="fas fa-clipboard-check me-2"></i>Take Attendance
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Export to CSV functionality
+function exportToCSV() {
+    const table = document.getElementById('attendanceTable');
+    const rows = table.querySelectorAll('tr');
+    let csv = [];
+    
+    // Header row
+    const headerCells = rows[0].querySelectorAll('th');
+    let headerRow = [];
+    headerCells.forEach(cell => {
+        headerRow.push('"' + cell.textContent.trim() + '"');
+    });
+    csv.push(headerRow.join(','));
+    
+    // Data rows
+    for (let i = 1; i < rows.length; i++) {
+        const cells = rows[i].querySelectorAll('td');
+        let row = [];
+        cells.forEach(cell => {
+            // Clean up cell content (remove HTML, extra spaces)
+            let content = cell.textContent.trim().replace(/\s+/g, ' ');
+            row.push('"' + content + '"');
+        });
+        csv.push(row.join(','));
+    }
+    
+    // Download CSV
+    const csvContent = csv.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    
+    if (link.download !== undefined) {
+        const url = URL.createObjectURL(blob);
+        link.setAttribute('href', url);
+        link.setAttribute('download', 'attendance_report_' + new Date().toISOString().split('T')[0] + '.csv');
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+}
+
+// Set default dates (last 30 days)
+document.addEventListener('DOMContentLoaded', function() {
+    const startDateInput = document.getElementById('start_date');
+    const endDateInput = document.getElementById('end_date');
+    
+    if (!startDateInput.value && !endDateInput.value) {
+        const today = new Date();
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(today.getDate() - 30);
+        
+        endDateInput.value = today.toISOString().split('T')[0];
+        // Uncomment to auto-set start date
+        // startDateInput.value = thirtyDaysAgo.toISOString().split('T')[0];
+    }
+});
+
+// Table sorting functionality
+function sortTable(columnIndex) {
+    const table = document.getElementById('attendanceTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    const sortedRows = rows.sort((a, b) => {
+        const aText = a.cells[columnIndex].textContent.trim();
+        const bText = b.cells[columnIndex].textContent.trim();
+        
+        // Try to compare as numbers first
+        const aNum = parseFloat(aText);
+        const bNum = parseFloat(bText);
+        
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+            return aNum - bNum;
+        }
+        
+        // Compare as strings
+        return aText.localeCompare(bText);
+    });
+    
+    // Remove existing rows
+    rows.forEach(row => row.remove());
+    
+    // Add sorted rows back
+    sortedRows.forEach(row => tbody.appendChild(row));
+}
+</script>
+{% endblock %}

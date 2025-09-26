@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+
+{% block title %}Students - Secure Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-users me-2"></i>Registered Students
+                </h2>
+                <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+                    <i class="fas fa-user-plus me-2"></i>Add New Student
+                </a>
+            </div>
+            
+            {% if students %}
+                <div class="row">
+                    {% for student in students %}
+                    <div class="col-md-6 col-lg-4 mb-4">
+                        <div class="card h-100">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    {% if student.photo_path %}
+                                        <img src="{{ url_for('static', filename=student.photo_path.replace('static/', '')) }}" 
+                                             alt="{{ student.name }}" 
+                                             class="rounded-circle img-fluid"
+                                             style="width: 100px; height: 100px; object-fit: cover;">
+                                    {% else %}
+                                        <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                                             style="width: 100px; height: 100px;">
+                                            <i class="fas fa-user fa-3x text-white"></i>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <h5 class="card-title">{{ student.name }}</h5>
+                                <p class="card-text">
+                                    <strong>Roll Number:</strong> {{ student.roll_number }}<br>
+                                    {% if student.parent_name %}
+                                        <strong>Parent:</strong> {{ student.parent_name }}<br>
+                                    {% endif %}
+                                    {% if student.phone_number %}
+                                        <strong>Phone:</strong> {{ student.phone_number }}<br>
+                                    {% endif %}
+                                    <small class="text-muted">
+                                        Registered: {{ student.created_at.strftime('%d %b %Y') }}
+                                    </small>
+                                </p>
+                                
+                                <div class="d-flex justify-content-center mb-3">
+                                    {% if student.secure_token %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-shield-alt me-1"></i>Secure Token
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning">
+                                            <i class="fas fa-exclamation me-1"></i>No Security Token
+                                        </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                <div class="d-grid gap-2 d-md-block">
+                                    <button class="btn btn-outline-primary btn-sm" 
+                                            onclick="editStudent({{ student.id }}, '{{ student.name|e }}', '{{ student.roll_number|e }}')">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <button class="btn btn-outline-danger btn-sm" 
+                                            onclick="confirmDelete({{ student.id }}, '{{ student.name|e }}')">
+                                        <i class="fas fa-trash me-1"></i>Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Statistics Card -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <div class="row text-center">
+                            <div class="col-md-4">
+                                <h3 class="text-primary">{{ students|length }}</h3>
+                                <p class="mb-0">Total Students</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-success">{{ students|selectattr('secure_token')|list|length }}</h3>
+                                <p class="mb-0">Secure Tokens</p>
+                            </div>
+                            <div class="col-md-4">
+                                <h3 class="text-info">{{ ((students|selectattr('secure_token')|list|length / students|length) * 100)|round|int if students else 0 }}%</h3>
+                                <p class="mb-0">Security Complete</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Admin Actions -->
+                <div class="card mt-4 border-danger">
+                    <div class="card-header bg-danger text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-cog me-2"></i>Admin Actions
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Bulk Operations</h6>
+                                <button class="btn btn-warning me-2" onclick="confirmBulkDelete()">
+                                    <i class="fas fa-trash-alt me-1"></i>Remove All Students
+                                </button>
+                                <button class="btn btn-info me-2" onclick="exportStudents()">
+                                    <i class="fas fa-download me-1"></i>Export Data
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Database Status</h6>
+                                <p class="mb-1"><strong>Students:</strong> {{ students|length }}</p>
+                                <p class="mb-1"><strong>Storage Used:</strong> <span id="storage-info">Calculating...</span></p>
+                                <p class="mb-0"><strong>Last Update:</strong> {{ moment().format('DD MMM YYYY, HH:mm') if moment else 'Unknown' }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-user-slash fa-5x text-muted"></i>
+                    </div>
+                    <h3 class="text-muted">No Students Registered</h3>
+                    <p class="text-muted mb-4">Start by adding your first student to the system.</p>
+                    <a href="{{ url_for('add_student') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus me-2"></i>Add First Student
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete <strong id="studentName"></strong>?</p>
+                <p class="text-danger">This action cannot be undone and will also remove:</p>
+                <ul class="text-danger">
+                    <li>All attendance records for this student</li>
+                    <li>Student photo and data</li>
+                    <li>Security tokens</li>
+                </ul>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Student</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Delete Confirmation Modal -->
+<div class="modal fade" id="bulkDeleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">⚠️ Confirm Bulk Delete</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger">
+                    <h6>⚠️ This will permanently delete ALL student data!</h6>
+                </div>
+                <p>You are about to remove <strong>{{ students|length }} students</strong> and:</p>
+                <ul class="text-danger">
+                    <li>All student profiles and photos</li>
+                    <li>All attendance records</li>
+                    <li>All security tokens</li>
+                    <li>All historical data</li>
+                </ul>
+                <div class="form-check mt-3">
+                    <input class="form-check-input" type="checkbox" id="confirmBulkCheck">
+                    <label class="form-check-label" for="confirmBulkCheck">
+                        I understand this action cannot be undone
+                    </label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmBulkDeleteBtn" disabled>
+                    Delete All Students
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let studentToDelete = null;
+
+// Individual student delete
+function confirmDelete(studentId, studentName) {
+    studentToDelete = studentId;
+    document.getElementById('studentName').textContent = studentName;
+    new bootstrap.Modal(document.getElementById('deleteModal')).show();
+}
+
+// Handle individual delete confirmation
+document.getElementById('confirmDeleteBtn').addEventListener('click', function() {
+    if (studentToDelete) {
+        deleteStudent(studentToDelete);
+    }
+});
+
+// Delete student function
+function deleteStudent(studentId) {
+    fetch('/delete_student', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({student_id: studentId})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal and reload page
+            bootstrap.Modal.getInstance(document.getElementById('deleteModal')).hide();
+            window.location.reload();
+        } else {
+            alert('Error deleting student: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred while deleting student');
+    });
+}
+
+// Bulk delete confirmation
+function confirmBulkDelete() {
+    new bootstrap.Modal(document.getElementById('bulkDeleteModal')).show();
+}
+
+// Enable/disable bulk delete button based on checkbox
+document.getElementById('confirmBulkCheck').addEventListener('change', function() {
+    document.getElementById('confirmBulkDeleteBtn').disabled = !this.checked;
+});
+
+// Handle bulk delete confirmation
+document.getElementById('confirmBulkDeleteBtn').addEventListener('click', function() {
+    fetch('/delete_all_students', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Close modal and reload page
+            bootstrap.Modal.getInstance(document.getElementById('bulkDeleteModal')).hide();
+            window.location.reload();
+        } else {
+            alert('Error deleting all students: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Network error occurred while deleting students');
+    });
+});
+
+// Edit student function (placeholder)
+function editStudent(studentId, studentName, rollNumber) {
+    // This could open an edit modal or redirect to edit page
+    alert('Edit functionality not implemented yet. Student ID: ' + studentId);
+}
+
+// Export students function
+function exportStudents() {
+    window.location.href = '/export_students';
+}
+
+// Calculate storage info
+document.addEventListener('DOMContentLoaded', function() {
+    // This is a placeholder - in a real app you'd fetch this from the server
+    document.getElementById('storage-info').textContent = '{{ "%.1f"|format((students|length * 0.5)) }} MB';
+});
+</script>
+
+{% endblock %}

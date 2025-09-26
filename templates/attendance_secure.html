@@ -1,0 +1,291 @@
+{% extends "base.html" %}
+
+{% block title %}Camera Attendance - Secure Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-camera me-2"></i>Camera-Based Attendance
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Daily Code Display -->
+                    {% if daily_code %}
+                    <div class="alert alert-warning text-center mb-4">
+                        <h4><i class="fas fa-key me-2"></i>Today's Verification Code</h4>
+                        <h2 class="text-primary mb-2">{{ daily_code.daily_code }}</h2>
+                        <p class="mb-0">
+                            <small>Valid for {{ daily_code.date.strftime('%d %B %Y') }}</small>
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Camera Availability Notice -->
+                    <div class="alert alert-info mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Camera-Based Attendance</h5>
+                        <p class="mb-2">This feature requires:</p>
+                        <ul class="mb-3">
+                            <li>A working camera/webcam connected to your device</li>
+                            <li>Face recognition libraries properly installed</li>
+                            <li>Good lighting conditions</li>
+                            <li>Students to look directly at the camera</li>
+                        </ul>
+                        <div class="alert alert-warning mt-3">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Rural School Alternative:</strong> 
+                            If cameras are not available, use the 
+                            <a href="{{ url_for('manual_attendance') }}" class="alert-link">Manual Digital Attendance</a> 
+                            method which only requires verification codes and student tokens.
+                        </div>
+                    </div>
+                    
+                    <!-- Camera Interface -->
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <div id="camera-status" class="mb-3">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading camera...</span>
+                                        </div>
+                                        <p class="mt-2">Initializing camera...</p>
+                                    </div>
+                                    
+                                    <video id="video" width="100%" height="400" autoplay muted style="display: none; border-radius: 8px;"></video>
+                                    <canvas id="canvas" style="display: none;"></canvas>
+                                    
+                                    <div id="camera-error" style="display: none;" class="text-center py-5">
+                                        <i class="fas fa-video-slash fa-5x text-muted mb-3"></i>
+                                        <h4 class="text-muted">Camera Not Available</h4>
+                                        <p class="text-muted mb-4">
+                                            Unable to access camera. This could be because:
+                                        </p>
+                                        <ul class="list-unstyled text-muted mb-4">
+                                            <li><i class="fas fa-times me-2"></i>No camera is connected</li>
+                                            <li><i class="fas fa-times me-2"></i>Camera permission was denied</li>
+                                            <li><i class="fas fa-times me-2"></i>Camera is being used by another application</li>
+                                        </ul>
+                                        <a href="{{ url_for('manual_attendance') }}" class="btn btn-primary">
+                                            <i class="fas fa-clipboard-check me-2"></i>Use Manual Attendance Instead
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-users me-2"></i>Recognition Results
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <div id="recognition-results">
+                                        <div class="text-center text-muted py-4">
+                                            <i class="fas fa-search fa-3x mb-3"></i>
+                                            <p>Students will appear here when recognized</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4">
+                                        <button id="capture-btn" class="btn btn-success w-100 mb-2" onclick="capturePhoto()" disabled>
+                                            <i class="fas fa-camera me-2"></i>Capture & Recognize
+                                        </button>
+                                        <button id="mark-attendance-btn" class="btn btn-primary w-100" onclick="markAttendance()" style="display: none;">
+                                            <i class="fas fa-check me-2"></i>Mark Present Students
+                                        </button>
+                                        <div id="recognized-students" style="display: none;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Instructions -->
+                    <div class="card mt-4">
+                        <div class="card-body">
+                            <h5><i class="fas fa-list-ol me-2"></i>How to Use Camera Attendance</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <ol>
+                                        <li>Ensure good lighting and camera is working</li>
+                                        <li>Display today's verification code to students</li>
+                                        <li>Have students stand in front of camera one by one</li>
+                                        <li>Click "Capture & Recognize" for each student</li>
+                                    </ol>
+                                </div>
+                                <div class="col-md-6">
+                                    <ol start="5">
+                                        <li>Verify student identity matches the recognition</li>
+                                        <li>Student must provide verification code + token</li>
+                                        <li>Click "Mark Present Students" to save attendance</li>
+                                        <li>Review attendance records in Reports section</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let video, canvas, context;
+let recognizedStudents = [];
+
+document.addEventListener('DOMContentLoaded', function() {
+    initializeCamera();
+});
+
+async function initializeCamera() {
+    video = document.getElementById('video');
+    canvas = document.getElementById('canvas');
+    context = canvas.getContext('2d');
+    
+    try {
+        // Check if camera is available
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const videoDevices = devices.filter(device => device.kind === 'videoinput');
+        
+        if (videoDevices.length === 0) {
+            throw new Error('No camera found');
+        }
+        
+        // Request camera access
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                width: { ideal: 640 }, 
+                height: { ideal: 480 },
+                facingMode: 'user'
+            } 
+        });
+        
+        video.srcObject = stream;
+        
+        video.addEventListener('loadedmetadata', function() {
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            
+            // Hide loading, show video
+            document.getElementById('camera-status').style.display = 'none';
+            video.style.display = 'block';
+            document.getElementById('capture-btn').disabled = false;
+        });
+        
+    } catch (error) {
+        console.error('Camera initialization failed:', error);
+        showCameraError();
+    }
+}
+
+function showCameraError() {
+    document.getElementById('camera-status').style.display = 'none';
+    document.getElementById('camera-error').style.display = 'block';
+}
+
+function capturePhoto() {
+    if (!video || !canvas) return;
+    
+    // Draw video frame to canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert to base64
+    const imageData = canvas.toDataURL('image/jpeg', 0.8);
+    
+    // Show loading state
+    const captureBtn = document.getElementById('capture-btn');
+    captureBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Recognizing...';
+    captureBtn.disabled = true;
+    
+    // Simulate face recognition (since we don't have the libraries installed)
+    setTimeout(() => {
+        // For demo purposes, show a message about face recognition
+        showRecognitionResult();
+        
+        // Reset button
+        captureBtn.innerHTML = '<i class="fas fa-camera me-2"></i>Capture & Recognize';
+        captureBtn.disabled = false;
+    }, 2000);
+}
+
+function showRecognitionResult() {
+    const resultsDiv = document.getElementById('recognition-results');
+    
+    // In a real implementation, this would be the actual face recognition result
+    resultsDiv.innerHTML = `
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            <strong>Face Recognition Not Available</strong>
+            <p class="mb-2 mt-2">The face recognition libraries are not properly installed on this system.</p>
+            <p class="mb-0">
+                For rural schools, we recommend using the 
+                <a href="${window.location.origin}/attendance/manual" class="alert-link">Manual Digital Attendance</a> 
+                method which provides the same security without requiring camera hardware.
+            </p>
+        </div>
+        <div class="text-center mt-3">
+            <a href="${window.location.origin}/attendance/manual" class="btn btn-primary">
+                <i class="fas fa-clipboard-check me-2"></i>Switch to Manual Method
+            </a>
+        </div>
+    `;
+}
+
+function markAttendance() {
+    // This would normally send the recognized students to the server
+    if (recognizedStudents.length === 0) {
+        alert('No students recognized. Please capture photos first.');
+        return;
+    }
+    
+    // Implementation would be similar to manual attendance
+    console.log('Marking attendance for:', recognizedStudents);
+}
+
+// Cleanup camera when leaving page
+window.addEventListener('beforeunload', function() {
+    if (video && video.srcObject) {
+        video.srcObject.getTracks().forEach(track => track.stop());
+    }
+});
+</script>
+
+<style>
+#video {
+    border: 2px solid #dee2e6;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.alert-link {
+    font-weight: 600;
+}
+
+#recognition-results {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+</style>
+{% endblock %}

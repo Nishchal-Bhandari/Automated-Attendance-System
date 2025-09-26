@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero-section text-center">
+    <div class="container">
+        <h1 class="display-4 mb-4">
+            <i class="fas fa-graduation-cap me-3"></i>
+            Student Attendance System
+        </h1>
+        <p class="lead mb-4">
+            Automated attendance tracking using facial recognition technology for rural schools in India
+        </p>
+        <a href="{{ url_for('attendance_page') }}" class="btn btn-light btn-lg me-3">
+            <i class="fas fa-camera me-2"></i>Mark Attendance
+        </a>
+        <a href="{{ url_for('add_student') }}" class="btn btn-outline-light btn-lg">
+            <i class="fas fa-user-plus me-2"></i>Add Student
+        </a>
+    </div>
+</div>
+
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                    <h5 class="card-title">Manage Students</h5>
+                    <p class="card-text">Add students with their photos and roll numbers. The system will automatically create face encodings for recognition.</p>
+                    <a href="{{ url_for('students') }}" class="btn btn-custom">View Students</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-camera fa-3x text-success mb-3"></i>
+                    <h5 class="card-title">Mark Attendance</h5>
+                    <p class="card-text">Use your camera to automatically mark attendance. The system recognizes students' faces and records their attendance.</p>
+                    <a href="{{ url_for('attendance_page') }}" class="btn btn-custom">Start Camera</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 text-center">
+                <div class="card-body">
+                    <i class="fas fa-chart-bar fa-3x text-info mb-3"></i>
+                    <h5 class="card-title">View Reports</h5>
+                    <p class="card-text">Generate attendance reports for daily tracking and government reporting requirements.</p>
+                    <a href="{{ url_for('reports') }}" class="btn btn-custom">View Reports</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h3 class="card-title text-center mb-4">
+                        <i class="fas fa-info-circle me-2"></i>About This System
+                    </h3>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-check-circle text-success me-2"></i>Features</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-check me-2 text-success"></i>Facial recognition-based attendance</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Easy student management</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Daily attendance reports</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Low-cost solution</li>
+                                <li><i class="fas fa-check me-2 text-success"></i>Minimal training required</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5><i class="fas fa-users text-primary me-2"></i>Benefits</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-clock me-2 text-info"></i>Saves teacher time</li>
+                                <li><i class="fas fa-accuracy me-2 text-info"></i>Improves accuracy</li>
+                                <li><i class="fas fa-file-alt me-2 text-info"></i>Better government reporting</li>
+                                <li><i class="fas fa-chart-line me-2 text-info"></i>Enhanced resource allocation</li>
+                                <li><i class="fas fa-mobile-alt me-2 text-info"></i>Works on basic computers</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

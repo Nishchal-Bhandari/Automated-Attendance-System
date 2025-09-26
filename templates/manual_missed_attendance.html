@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Missed Students - Student Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-check me-2"></i>Mark Attendance for Missed Students
+                    </h3>
+                    <p class="mb-0 mt-2">Students who weren't detected in the group photo can be marked manually here.</p>
+                </div>
+                <div class="card-body">
+                    {% if absent_students %}
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>{{ absent_students|length }} students</strong> haven't been marked present today. 
+                            Check the boxes for students who are actually present but were missed in the group photo.
+                        </div>
+                        
+                        <form method="POST" action="{{ url_for('mark_missed_attendance') }}">
+                            <div class="row">
+                                {% for student in absent_students %}
+                                <div class="col-md-6 col-lg-4 mb-3">
+                                    <div class="card h-100">
+                                        <div class="card-body text-center">
+                                            <!-- Student Photo -->
+                                            <div class="mb-3">
+                                                {% if student.photo_path %}
+                                                    <img src="{{ url_for('static', filename=student.photo_path.replace('static/', '')) }}" 
+                                                         alt="{{ student.name }}" 
+                                                         class="rounded-circle img-fluid"
+                                                         style="width: 80px; height: 80px; object-fit: cover;">
+                                                {% else %}
+                                                    <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                         style="width: 80px; height: 80px;">
+                                                        <i class="fas fa-user fa-2x text-white"></i>
+                                                    </div>
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <!-- Student Info -->
+                                            <h6 class="card-title">{{ student.name }}</h6>
+                                            <p class="card-text small text-muted">
+                                                Roll: {{ student.roll_number }}
+                                                {% if student.parent_name %}
+                                                <br>Parent: {{ student.parent_name }}
+                                                {% endif %}
+                                            </p>
+                                            
+                                            <!-- Checkbox -->
+                                            <div class="form-check">
+                                                <input class="form-check-input" type="checkbox" 
+                                                       name="student_ids" value="{{ student.id }}" 
+                                                       id="student_{{ student.id }}">
+                                                <label class="form-check-label" for="student_{{ student.id }}">
+                                                    <strong>Mark as Present</strong>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            
+                            <!-- Action Buttons -->
+                            <div class="row mt-4">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <button type="button" class="btn btn-outline-secondary me-2" onclick="selectAll()">
+                                                <i class="fas fa-check-square me-2"></i>Select All
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary" onclick="selectNone()">
+                                                <i class="fas fa-square me-2"></i>Select None
+                                            </button>
+                                        </div>
+                                        <div>
+                                            <a href="{{ url_for('group_attendance') }}" class="btn btn-secondary me-2">
+                                                <i class="fas fa-arrow-left me-2"></i>Back to Camera
+                                            </a>
+                                            <button type="submit" class="btn btn-success">
+                                                <i class="fas fa-save me-2"></i>Mark Selected as Present
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                        
+                    {% else %}
+                        <!-- All students already marked -->
+                        <div class="text-center py-5">
+                            <div class="mb-4">
+                                <i class="fas fa-check-circle fa-5x text-success"></i>
+                            </div>
+                            <h3 class="text-success">All Students Marked Present!</h3>
+                            <p class="text-muted mb-4">
+                                Great job! All registered students have been marked present for {{ today.strftime('%B %d, %Y') }}.
+                            </p>
+                            <div class="d-flex justify-content-center gap-3">
+                                <a href="{{ url_for('group_attendance') }}" class="btn btn-primary">
+                                    <i class="fas fa-camera me-2"></i>Take Another Photo
+                                </a>
+                                <a href="{{ url_for('reports') }}" class="btn btn-success">
+                                    <i class="fas fa-chart-bar me-2"></i>View Report
+                                </a>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Tips Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h6 class="mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Tips for Better Group Photo Attendance
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-camera-retro text-primary me-2"></i>Improving Photo Quality:</h6>
+                            <ul class="small">
+                                <li>Ensure good lighting in the classroom</li>
+                                <li>Have students arranged in rows/semicircle</li>
+                                <li>Ask students to face the camera directly</li>
+                                <li>Keep some distance to capture all students</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-user-friends text-success me-2"></i>Common Reasons for Missing Students:</h6>
+                            <ul class="small">
+                                <li>Student looking away from camera</li>
+                                <li>Face partially hidden by another student</li>
+                                <li>Poor lighting on student's face</li>
+                                <li>Student not registered in system yet</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function selectAll() {
+    const checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+    });
+}
+
+function selectNone() {
+    const checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+    });
+}
+
+// Auto-save selections to localStorage (in case page is accidentally refreshed)
+document.addEventListener('DOMContentLoaded', function() {
+    const checkboxes = document.querySelectorAll('input[name="student_ids"]');
+    
+    // Load saved selections
+    checkboxes.forEach(checkbox => {
+        const saved = localStorage.getItem(`missed_student_${checkbox.value}`);
+        if (saved === 'true') {
+            checkbox.checked = true;
+        }
+    });
+    
+    // Save selections on change
+    checkboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            localStorage.setItem(`missed_student_${this.value}`, this.checked);
+        });
+    });
+    
+    // Clear saved data when form is submitted
+    const form = document.querySelector('form');
+    if (form) {
+        form.addEventListener('submit', function() {
+            checkboxes.forEach(checkbox => {
+                localStorage.removeItem(`missed_student_${checkbox.value}`);
+            });
+        });
+    }
+});
+</script>
+{% endblock %}

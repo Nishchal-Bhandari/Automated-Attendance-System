@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Add Student - Student Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">
+                        <i class="fas fa-user-plus me-2"></i>Add New Student
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="name" class="form-label">
+                                <i class="fas fa-user me-2"></i>Student Name
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" required 
+                                   placeholder="Enter student's full name">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="roll_number" class="form-label">
+                                <i class="fas fa-id-badge me-2"></i>Roll Number
+                            </label>
+                            <input type="text" class="form-control" id="roll_number" name="roll_number" required 
+                                   placeholder="Enter unique roll number">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="photo" class="form-label">
+                                <i class="fas fa-camera me-2"></i>Student Photo
+                            </label>
+                            <input type="file" class="form-control" id="photo" name="photo" 
+                                   accept="image/*" required>
+                            <div class="form-text">
+                                Please upload a clear photo showing the student's face. Supported formats: JPG, PNG, GIF
+                            </div>
+                        </div>
+                        
+                        <!-- Photo Preview -->
+                        <div class="mb-3" id="photo-preview" style="display: none;">
+                            <label class="form-label">Photo Preview:</label>
+                            <div class="text-center">
+                                <img id="preview-img" src="" alt="Photo Preview" 
+                                     style="max-width: 200px; max-height: 200px; border-radius: 10px;">
+                            </div>
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="{{ url_for('students') }}" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-times me-2"></i>Cancel
+                            </a>
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-save me-2"></i>Add Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Instructions Card -->
+            <div class="card mt-4">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Instructions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-camera text-primary me-2"></i>Photo Guidelines:</h6>
+                            <ul class="small">
+                                <li>Use a clear, well-lit photo</li>
+                                <li>Student should face the camera directly</li>
+                                <li>No sunglasses or face coverings</li>
+                                <li>Single person in the photo</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h6><i class="fas fa-id-badge text-success me-2"></i>Roll Number:</h6>
+                            <ul class="small">
+                                <li>Must be unique for each student</li>
+                                <li>Use school's standard format</li>
+                                <li>Cannot be changed later</li>
+                                <li>Will be used for identification</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('photo').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('photo-preview').style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    } else {
+        document.getElementById('photo-preview').style.display = 'none';
+    }
+});
+</script>
+{% endblock %}

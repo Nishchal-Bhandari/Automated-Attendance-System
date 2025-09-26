@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Attendance Reports - Student Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-chart-bar me-2"></i>Attendance Reports
+                </h2>
+                <div>
+                    <input type="date" id="dateFilter" class="form-control d-inline-block" style="width: auto;" 
+                           value="{{ date.strftime('%Y-%m-%d') if date else '' }}">
+                    <button onclick="filterByDate()" class="btn btn-primary ms-2">
+                        <i class="fas fa-filter me-2"></i>Filter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Date Header -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h4 class="text-primary">{{ date.strftime('%B %d, %Y') if date else 'Select Date' }}</h4>
+                            <p class="mb-0">Report Date</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-success">{{ attendance_records|length }}</h4>
+                            <p class="mb-0">Present Students</p>
+                        </div>
+                        <div class="col-md-3">
+                            {% set total_students = (attendance_records|length) %}
+                            <h4 class="text-warning">-</h4>
+                            <p class="mb-0">Absent Students</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-info">
+                                {% if attendance_records|length > 0 %}
+                                    {{ ((attendance_records|length / (attendance_records|length)) * 100)|round|int }}%
+                                {% else %}
+                                    0%
+                                {% endif %}
+                            </h4>
+                            <p class="mb-0">Attendance Rate</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if attendance_records %}
+                <!-- Attendance Table -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list me-2"></i>Attendance Details
+                        </h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover mb-0">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th width="5%">#</th>
+                                        <th width="15%">Photo</th>
+                                        <th width="25%">Student Name</th>
+                                        <th width="15%">Roll Number</th>
+                                        <th width="15%">Time In</th>
+                                        <th width="15%">Status</th>
+                                        <th width="10%">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for attendance, student in attendance_records %}
+                                    <tr>
+                                        <td>{{ loop.index }}</td>
+                                        <td>
+                                            {% if student.photo_path %}
+                                                <img src="{{ url_for('static', filename=student.photo_path.replace('static/', '')) }}" 
+                                                     alt="{{ student.name }}" 
+                                                     class="rounded-circle"
+                                                     style="width: 40px; height: 40px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center"
+                                                     style="width: 40px; height: 40px;">
+                                                    <i class="fas fa-user text-white small"></i>
+                                                </div>
+                                            {% endif %}
+                                        </td>
+                                        <td>
+                                            <strong>{{ student.name }}</strong>
+                                        </td>
+                                        <td>
+                                            <code>{{ student.roll_number }}</code>
+                                        </td>
+                                        <td>
+                                            <i class="fas fa-clock me-2 text-muted"></i>
+                                            {{ attendance.time_in.strftime('%I:%M %p') }}
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-success">
+                                                <i class="fas fa-check me-1"></i>{{ attendance.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Export Options -->
+                <div class="card mt-4">
+                    <div class="card-body">
+                        <h5><i class="fas fa-download me-2"></i>Export Options</h5>
+                        <p class="text-muted">Download attendance data for government reporting and record keeping.</p>
+                        <div class="d-flex gap-2">
+                            <button onclick="exportToCSV()" class="btn btn-success">
+                                <i class="fas fa-file-csv me-2"></i>Export to CSV
+                            </button>
+                            <button onclick="printReport()" class="btn btn-info">
+                                <i class="fas fa-print me-2"></i>Print Report
+                            </button>
+                            <button onclick="generateSummary()" class="btn btn-warning">
+                                <i class="fas fa-chart-pie me-2"></i>Generate Summary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+            {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-4">
+                        <i class="fas fa-calendar-times fa-5x text-muted"></i>
+                    </div>
+                    <h3 class="text-muted">No Attendance Records</h3>
+                    <p class="text-muted mb-4">
+                        {% if date %}
+                            No students marked attendance on {{ date.strftime('%B %d, %Y') }}.
+                        {% else %}
+                            No attendance records found for today.
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('attendance_page') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-camera me-2"></i>Start Marking Attendance
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterByDate() {
+    const selectedDate = document.getElementById('dateFilter').value;
+    if (selectedDate) {
+        window.location.href = `/reports/${selectedDate}`;
+    }
+}
+
+function exportToCSV() {
+    // Create CSV content
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += "Student Name,Roll Number,Date,Time In,Status\n";
+    
+    {% if attendance_records %}
+    {% for attendance, student in attendance_records %}
+    csvContent += "{{ student.name }},{{ student.roll_number }},{{ attendance.date }},{{ attendance.time_in.strftime('%I:%M %p') }},{{ attendance.status }}\n";
+    {% endfor %}
+    {% endif %}
+    
+    // Create download link
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `attendance_{{ date.strftime('%Y-%m-%d') if date else 'report' }}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function printReport() {
+    window.print();
+}
+
+function generateSummary() {
+    alert('Summary generation feature will be implemented in future updates.');
+}
+
+// Auto-set today's date if no date is selected
+document.addEventListener('DOMContentLoaded', function() {
+    const dateFilter = document.getElementById('dateFilter');
+    if (!dateFilter.value) {
+        const today = new Date().toISOString().split('T')[0];
+        dateFilter.value = today;
+    }
+});
+</script>
+
+<style>
+@media print {
+    .btn, .card-header, nav, footer {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,224 @@
+{% extends "base.html" %}
+
+{% block title %}Manual Attendance - Secure Attendance System{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-clipboard-check me-2"></i>Manual Digital Attendance
+                    </h3>
+                </div>
+                <div class="card-body">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show" role="alert">
+                                    {{ message }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                    
+                    <!-- Daily Code Display -->
+                    {% if daily_code %}
+                    <div class="alert alert-warning text-center mb-4">
+                        <h4><i class="fas fa-key me-2"></i>Today's Verification Code</h4>
+                        <h2 class="text-primary mb-2">{{ daily_code.daily_code }}</h2>
+                        <p class="mb-0">
+                            <small>Valid for {{ daily_code.date.strftime('%d %B %Y') }}</small>
+                        </p>
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Instructions -->
+                    <div class="alert alert-info mb-4">
+                        <h5><i class="fas fa-info-circle me-2"></i>Instructions for Teachers</h5>
+                        <ol class="mb-0">
+                            <li>Display today's verification code on the board</li>
+                            <li>Students must provide their secure token + verification code</li>
+                            <li>Select present students from the list below</li>
+                            <li>Click "Mark Attendance" to save records</li>
+                        </ol>
+                    </div>
+                    
+                    {% if students %}
+                    <form method="POST">
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <button type="button" class="btn btn-outline-success me-2" onclick="selectAll()">
+                                        <i class="fas fa-check-double me-1"></i>Select All
+                                    </button>
+                                    <button type="button" class="btn btn-outline-warning me-2" onclick="clearAll()">
+                                        <i class="fas fa-times me-1"></i>Clear All
+                                    </button>
+                                    <span class="text-muted">
+                                        <span id="selected-count">0</span> / {{ students|length }} selected
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="col-md-6 text-end">
+                                <button type="submit" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-save me-2"></i>Mark Attendance
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            {% for student in students %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card student-card" data-student-id="{{ student.id }}">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input class="form-check-input student-checkbox" 
+                                                   type="checkbox" 
+                                                   value="{{ student.id }}" 
+                                                   id="student_{{ student.id }}" 
+                                                   name="student_ids"
+                                                   onchange="updateCount()">
+                                            <label class="form-check-label w-100" for="student_{{ student.id }}">
+                                                <div class="d-flex align-items-center">
+                                                    {% if student.photo_path %}
+                                                        <img src="{{ url_for('static', filename=student.photo_path.replace('static/', '')) }}" 
+                                                             alt="{{ student.name }}" 
+                                                             class="rounded-circle me-3"
+                                                             style="width: 50px; height: 50px; object-fit: cover;">
+                                                    {% else %}
+                                                        <div class="bg-secondary rounded-circle d-inline-flex align-items-center justify-content-center me-3"
+                                                             style="width: 50px; height: 50px;">
+                                                            <i class="fas fa-user text-white"></i>
+                                                        </div>
+                                                    {% endif %}
+                                                    
+                                                    <div class="flex-grow-1">
+                                                        <h6 class="mb-1">{{ student.name }}</h6>
+                                                        <small class="text-muted">Roll: {{ student.roll_number }}</small>
+                                                        {% if student.secure_token %}
+                                                            <br><small class="text-success">
+                                                                <i class="fas fa-shield-alt me-1"></i>Token: {{ student.secure_token[:8] }}...
+                                                            </small>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </form>
+                    
+                    {% else %}
+                    <div class="text-center py-5">
+                        <div class="mb-4">
+                            <i class="fas fa-user-slash fa-5x text-muted"></i>
+                        </div>
+                        <h3 class="text-muted">No Students Found</h3>
+                        <p class="text-muted mb-4">Please add students before taking attendance.</p>
+                        <a href="{{ url_for('add_student') }}" class="btn btn-primary">
+                            <i class="fas fa-user-plus me-2"></i>Add Students
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function selectAll() {
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = true;
+        checkbox.closest('.student-card').classList.add('border-success');
+    });
+    updateCount();
+}
+
+function clearAll() {
+    const checkboxes = document.querySelectorAll('.student-checkbox');
+    checkboxes.forEach(checkbox => {
+        checkbox.checked = false;
+        checkbox.closest('.student-card').classList.remove('border-success');
+    });
+    updateCount();
+}
+
+function updateCount() {
+    const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+    document.getElementById('selected-count').textContent = checkboxes.length;
+    
+    // Update card styling
+    document.querySelectorAll('.student-checkbox').forEach(checkbox => {
+        const card = checkbox.closest('.student-card');
+        if (checkbox.checked) {
+            card.classList.add('border-success');
+            card.style.backgroundColor = '#f8f9fa';
+        } else {
+            card.classList.remove('border-success');
+            card.style.backgroundColor = '';
+        }
+    });
+}
+
+// Initialize count on page load
+document.addEventListener('DOMContentLoaded', function() {
+    updateCount();
+    
+    // Add click handler to cards for easier selection
+    document.querySelectorAll('.student-card').forEach(card => {
+        card.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = card.querySelector('.student-checkbox');
+                checkbox.checked = !checkbox.checked;
+                updateCount();
+            }
+        });
+    });
+});
+
+// Form validation
+document.querySelector('form')?.addEventListener('submit', function(event) {
+    const selectedStudents = document.querySelectorAll('.student-checkbox:checked');
+    
+    if (selectedStudents.length === 0) {
+        event.preventDefault();
+        alert('Please select at least one student for attendance.');
+        return false;
+    }
+    
+    const confirmation = confirm(`Mark attendance for ${selectedStudents.length} student(s)?`);
+    if (!confirmation) {
+        event.preventDefault();
+        return false;
+    }
+});
+</script>
+
+<style>
+.student-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.student-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-check-input:checked ~ .form-check-label {
+    color: #198754;
+}
+
+.border-success {
+    border-color: #198754 !important;
+    border-width: 2px !important;
+}
+</style>
+{% endblock %}
